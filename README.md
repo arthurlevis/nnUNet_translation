@@ -5,6 +5,13 @@ nnUNetv2 adapted for image-to-image translation, based on [MIC-DKFZ/nnUNet](http
 - Medical cross-modality translation : MR to CT translation
 - Medical image inpainting : Inpainting of brain lesions in MR
 
+Please cite the original paper and our SASHIMI paper when using nnU-Net_translation :
+
+    Isensee, F., Jaeger, P. F., Kohl, S. A., Petersen, J., & Maier-Hein, K. H. (2021). nnU-Net: a self-configuring 
+    method for deep learning-based biomedical image segmentation. Nature methods, 18(2), 203-211.
+
+    Longuefosse, A., Le Bot, E. et al. (2024). Adapting nnUNet for Medical Image Synthesis: Applications in MR to CT Translation and Lesion Inpainting. SASHIMI, Workshop at MICCAI 2024.
+    
 ## How to use it : 
 -> for now, you need to do the preprocessing separately for each modality 
   1. create one dataset for each modality (e.g. Dataset_X and Dataset_Y) put some dummy segmentation (actually not dummy! either a full-mask of 1, or a mask of 1 for your foreground since normalization is based on foreground and not full mask)
@@ -14,7 +21,7 @@ nnUNetv2 adapted for image-to-image translation, based on [MIC-DKFZ/nnUNet](http
   5. move preprocessed/Dataset_X/nnUNetPlans_3d_fullres/*.npy to preprocessed/Dataset_Y/nnUNetPlans_3d_fullres/*_seg.npy
      which means the preprocessed X volumes are used as the target for the dataset Y (= Y to X translation)
   6. also update the gt_segmentations of dataset_Y (just a copy of the raw/imagesTr of dataset X worked for me)
-
+  7. 
 now you can train using : 
 ```bash
 nnUNetv2_train DatasetY 3d_fullres 0 -tr nnUNetTrainerMRCT_mse
