@@ -5,12 +5,14 @@ nnUNetv2 adapted for image-to-image translation, based on [MIC-DKFZ/nnUNet](http
 - Medical cross-modality translation : MR to CT translation
 - Medical image inpainting : Inpainting of brain lesions in MR
 
-Please cite the original paper and our SASHIMI paper when using nnU-Net_translation :
+Please cite our workshop paper when using nnU-Net_translation :
+
+    Longuefosse, A., Le Bot, E. et al. (2024). Adapting nnUNet for Medical Image Synthesis: Applications in MR to CT Translation and Lesion Inpainting. SASHIMI, Workshop at MICCAI 2024.
+
+Along with the original nnUNet paper :
 
     Isensee, F., Jaeger, P. F., Kohl, S. A., Petersen, J., & Maier-Hein, K. H. (2021). nnU-Net: a self-configuring 
     method for deep learning-based biomedical image segmentation. Nature methods, 18(2), 203-211.
-
-    Longuefosse, A., Le Bot, E. et al. (2024). Adapting nnUNet for Medical Image Synthesis: Applications in MR to CT Translation and Lesion Inpainting. SASHIMI, Workshop at MICCAI 2024.
     
 ## How to use it : 
 -> for now, you need to do the preprocessing separately for each modality 
