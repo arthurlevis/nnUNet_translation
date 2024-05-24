@@ -31,7 +31,7 @@ The `pip install` command should install the modified [batchgenerators](https://
   5. move preprocessed/Dataset_X/nnUNetPlans_3d_fullres/*.npy to preprocessed/Dataset_Y/nnUNetPlans_3d_fullres/*_seg.npy
      which means the preprocessed X volumes are used as the target for the dataset Y (= Y to X translation)
   6. also update the gt_segmentations of dataset_Y (just a copy of the raw/imagesTr of dataset X worked for me)
-  7. 
+
 now you can train using : 
 ```bash
 nnUNetv2_train DatasetY 3d_fullres 0 -tr nnUNetTrainerMRCT_mse
