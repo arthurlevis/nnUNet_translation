@@ -2,12 +2,11 @@
 name = "nnunetv2"
 version = "2.5"
 requires-python = ">=3.9"
-description = "nnU-Net is a framework for out-of-the box image segmentation."
-readme = "readme.md"
+description = "nnU-Net_translation is an adapted nnUNet for medical image translation"
+readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
-    { name = "Fabian Isensee", email = "f.isensee@dkfz-heidelberg.de"},
-    { name = "Helmholtz Imaging Applied Computer Vision Lab" }
+    { name = "Arthur Longuefosse", email = "arthur.longuefosse@gmail.com"},
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -27,16 +26,17 @@ keywords = [
     'medical image analysis',
     'medical image segmentation',
     'nnU-Net',
-    'nnunet'
+    'nnunet',
+    'image translation',
+    'image synthesis',
+    'medical image translation'
 ]
 dependencies = [
     "torch>=2.1.2",
     "acvl-utils>=0.2,<0.3",  # 0.3 may bring breaking changes. Careful!
-    "dynamic-network-architectures>=0.3.1,<0.4",  # 0.3.1 and lower are supported, 0.4 may have breaking changes. Let's be careful here
     "tqdm",
     "dicom2nifti",
     "scipy",
-    "batchgenerators>=0.25",
     "numpy",
     "scikit-learn",
     "scikit-image>=0.19.3",
@@ -51,12 +51,14 @@ dependencies = [
     "imagecodecs",
     "yacs",
     "batchgeneratorsv2",
-    "einops"
+    "einops",
+    "dynamic-network-architectures_translation @ git+https://github.com/Phyrise/dynamic-network-architectures_translation.git@main",
+    "batchgenerators_translation @ git+https://github.com/Phyrise/batchgenerators_translation.git@master"
 ]
 
 [project.urls]
-homepage = "https://github.com/MIC-DKFZ/nnUNet"
-repository = "https://github.com/MIC-DKFZ/nnUNet"
+homepage = "https://github.com/Phyrise/nnUNet_translation"
+repository = "https://github.com/Phyrise/nnUNet_translation"
 
 [project.scripts]
 nnUNetv2_plan_and_preprocess = "nnunetv2.experiment_planning.plan_and_preprocess_entrypoints:plan_and_preprocess_entry"
