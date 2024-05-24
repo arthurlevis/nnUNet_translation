@@ -1,10 +1,6 @@
 # nnUNetv2_translation [in progress]
 nnUNetv2 adapted for image-to-image translation, based on [MIC-DKFZ/nnUNet](https://github.com/MIC-DKFZ/nnUNet).
 
-## Tested use cases : 
-- Medical cross-modality translation : MR to CT translation
-- Medical image inpainting : Inpainting of brain lesions in MR
-
 Please cite our workshop paper when using nnU-Net_translation :
 
     Longuefosse, A., Le Bot, E. et al. (2024). ---- to be determined
@@ -13,14 +9,19 @@ Along with the original nnUNet paper :
 
     Isensee, F., Jaeger, P. F., Kohl, S. A., Petersen, J., & Maier-Hein, K. H. (2021). nnU-Net: a self-configuring 
     method for deep learning-based biomedical image segmentation. Nature methods, 18(2), 203-211.
+
+## Tested use cases : 
+- Medical cross-modality translation : MR to CT translation
+- Medical image inpainting : Inpainting of brain lesions in MR
     
 ## How to use it : 
 ```bash
-git clone https://github.com/Phyrise/nnUNet_translation
+# I recommend creating a dedicated environment
+git clone https://github.com/Phyrise/nnUNet_translation 
 cd nnUNet_translation
 pip install -e .
 ```
-
+The pip install should install the modified [batchgenerators](https://github.com/Phyrise/batchgenerators_translation) and [dynamic-network-architectures](https://github.com/Phyrise/dynamic-network-architectures_translation)
 
 -> for now, you need to do the preprocessing separately for each modality 
   1. create one dataset for each modality (e.g. Dataset_X and Dataset_Y) put some dummy segmentation (actually not dummy! either a full-mask of 1, or a mask of 1 for your foreground since normalization is based on foreground and not full mask)
