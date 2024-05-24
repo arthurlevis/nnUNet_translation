@@ -7,7 +7,8 @@ nnUNetv2 adapted for image-to-image translation, based on [MIC-DKFZ/nnUNet](http
 
 Please cite our workshop paper when using nnU-Net_translation :
 
-    Longuefosse, A., Le Bot, E. et al. (2024). Adapting nnUNet for Medical Image Synthesis: Applications in MR to CT Translation and Lesion Inpainting. SASHIMI, Workshop at MICCAI 2024.
+    Longuefosse, A., Le Bot, E. et al. (2024). Adapting nnUNet for Medical Image Synthesis: 
+    Applications in MR to CT Translation and Lesion Inpainting. SASHIMI, Workshop at MICCAI 2024.
 
 Along with the original nnUNet paper :
 
