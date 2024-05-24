@@ -1,7 +1,11 @@
 # nnUNetv2_translation [in progress]
-nnUNetv2 adapted for image-to-image translation, based on https://github.com/MIC-DKFZ/nnUNet
+nnUNetv2 adapted for image-to-image translation, based on [MIC-DKFZ/nnUNet](https://github.com/MIC-DKFZ/nnUNet).
 
-How to use it : 
+## Tested use cases : 
+- Medical cross-modality translation : MR to CT translation
+- Medical image inpainting : Inpainting of brain lesions in MR
+
+## How to use it : 
 -> for now, you need to do the preprocessing separately for each modality 
   1. create one dataset for each modality (e.g. Dataset_X and Dataset_Y) put some dummy segmentation (actually not dummy! either a full-mask of 1, or a mask of 1 for your foreground since normalization is based on foreground and not full mask)
   2. apply preprocessing for each dataset (nnUNetv2_plan_and_preprocess)
@@ -22,7 +26,7 @@ inference :
 ```
 A smaller step_size (default: 0.5) at inference can reduce some artifacts on images (especially when using perceptual loss with conv_transpose).
 
-TODO : 
+## TODO : 
 - clean the mess
 - add arguments to control :
     - reconstruction mode (mean, median..)
