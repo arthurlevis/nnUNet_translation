@@ -21,7 +21,7 @@ git clone https://github.com/Phyrise/nnUNet_translation
 cd nnUNet_translation
 pip install -e .
 ```
-The pip install should install the modified [batchgenerators](https://github.com/Phyrise/batchgenerators_translation) and [dynamic-network-architectures](https://github.com/Phyrise/dynamic-network-architectures_translation)
+The `pip install` command should install the modified [batchgenerators](https://github.com/Phyrise/batchgenerators_translation) and [dynamic-network-architectures](https://github.com/Phyrise/dynamic-network-architectures_translation) repos.
 
 -> for now, you need to do the preprocessing separately for each modality 
   1. create one dataset for each modality (e.g. Dataset_X and Dataset_Y) put some dummy segmentation (actually not dummy! either a full-mask of 1, or a mask of 1 for your foreground since normalization is based on foreground and not full mask)
