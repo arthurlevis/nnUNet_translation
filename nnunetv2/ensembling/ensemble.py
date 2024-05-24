@@ -40,6 +40,7 @@ def merge_files(list_of_files,
     # load and average predictions
     probabilities = average_probabilities(list_of_files)
     segmentation = label_manager.convert_logits_to_segmentation(probabilities)
+
     image_reader_writer.write_seg(segmentation, output_filename_truncated + output_file_ending, properties)
     if save_probabilities:
         np.savez_compressed(output_filename_truncated + '.npz', probabilities=probabilities)

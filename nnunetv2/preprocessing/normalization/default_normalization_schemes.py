@@ -9,7 +9,7 @@ class ImageNormalization(ABC):
     leaves_pixels_outside_mask_at_zero_if_use_mask_for_norm_is_true = None
 
     def __init__(self, use_mask_for_norm: bool = None, intensityproperties: dict = None,
-                 target_dtype: Type[number] = np.float32):
+                 target_dtype: Type[number] = np.float32): #arthur : default to float16 ?
         assert use_mask_for_norm is None or isinstance(use_mask_for_norm, bool)
         self.use_mask_for_norm = use_mask_for_norm
         assert isinstance(intensityproperties, dict)
@@ -65,8 +65,36 @@ class CTNormalization(ImageNormalization):
         image -= mean_intensity
         image /= max(std_intensity, 1e-8)
         return image
+    
+class CTtanh(ImageNormalization):
+    _min = -1000
+    _max = 2000
+    def run(self, image: np.ndarray, seg: np.ndarray = None) -> np.ndarray:
+        image = image.astype(self.target_dtype, copy=False)
+        np.clip(image, self._min, self._max, out=image)
+        image -= self._min
+        image /= (self._max - self._min)
+        image = (image * 2.0) - 1.0
+        return image
+    
+'''
+z-score + 3-sigma rule to remove outliers + rescale to [-1 ; 1]
+'''    
+class MRtanh(ImageNormalization):
+    sigma = 3.0
+    def run(self, image: np.ndarray, seg: np.ndarray = None) -> np.ndarray:
+        image = image.astype(self.target_dtype, copy=False)
+        image = (image - np.mean(image)) / np.std(image)
+        
+        image[image < -self.sigma] = -self.sigma        
+        image[image > self.sigma] = self.sigma
+        image = image - np.min(image)
+        image = image / np.max(image)
+        image = 2.0*image - 1.0
 
+        return image
 
+        
 class NoNormalization(ImageNormalization):
     leaves_pixels_outside_mask_at_zero_if_use_mask_for_norm_is_true = False
 

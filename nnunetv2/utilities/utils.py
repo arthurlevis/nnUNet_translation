@@ -46,6 +46,7 @@ def create_lists_from_splitted_dataset_folder(folder: str, file_ending: str, ide
         p = re.compile(re.escape(f) + r"_\d\d\d\d" + re.escape(file_ending))
         list_of_lists.append([join(folder, i) for i in files if p.fullmatch(i)])
     return list_of_lists
+    # return [files] #arthur, fix for nnUNet Imene8
 
 
 def get_filenames_of_train_images_and_targets(raw_dataset_folder: str, dataset_json: dict = None):

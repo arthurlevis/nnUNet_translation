@@ -11,7 +11,7 @@ from nnunetv2.configuration import default_num_processes
 from nnunetv2.utilities.label_handling.label_handling import LabelManager
 from nnunetv2.utilities.plans_handling.plans_handler import PlansManager, ConfigurationManager
 
-
+import SimpleITK as sitk
 def convert_predicted_logits_to_segmentation_with_correct_shape(predicted_logits: Union[torch.Tensor, np.ndarray],
                                                                 plans_manager: PlansManager,
                                                                 configuration_manager: ConfigurationManager,
@@ -67,6 +67,53 @@ def convert_predicted_logits_to_segmentation_with_correct_shape(predicted_logits
         torch.set_num_threads(old_threads)
         return segmentation_reverted_cropping
 
+import torch
+import numpy as np
+
+def convert_predicted_image_to_original_shape(predicted_image: Union[torch.Tensor, np.ndarray], #arthur
+                                              plans_manager: PlansManager,
+                                              configuration_manager: ConfigurationManager,
+                                              properties_dict: dict,
+                                              num_threads_torch: int = default_num_processes):
+    old_threads = torch.get_num_threads()
+    torch.set_num_threads(num_threads_torch)
+
+    # Resample to original shape
+    # Assuming configuration_manager has a resampling function for images
+    current_spacing = configuration_manager.spacing if \
+        len(configuration_manager.spacing) == \
+        len(properties_dict['shape_after_cropping_and_before_resampling']) else \
+        [properties_dict['spacing'][0], *configuration_manager.spacing]
+    
+    predicted_resampled = configuration_manager.resampling_fn_data(predicted_image,
+                                                                     properties_dict['shape_after_cropping_and_before_resampling'],
+                                                                     current_spacing,
+                                                                     properties_dict['spacing'])
+
+    # Ensure output is in numpy format for further processing if not already
+    # print(predicted_resampled.shape)
+
+    if isinstance(predicted_resampled, torch.Tensor):
+        predicted_resampled = predicted_resampled.cpu().numpy() 
+
+    predicted_resampled = predicted_resampled[0] #arthur : hardcoded first channel
+    # sitk.WriteImage(sitk.GetImageFromArray(predicted_resampled.astype(np.float32)), "test_tanh.nii.gz")
+    print(predicted_resampled.shape, np.min(predicted_resampled), np.max(predicted_resampled), predicted_resampled.dtype)
+
+    # Put the image back into its original bounding box (revert cropping)
+    original_shape_image = np.zeros(properties_dict['shape_before_cropping'],
+                                    dtype=predicted_resampled.dtype)
+    slicer = bounding_box_to_slice(properties_dict['bbox_used_for_cropping'])
+    original_shape_image[slicer] = predicted_resampled
+    del predicted_resampled
+
+    # Revert transpose
+    original_shape_image = original_shape_image.transpose(plans_manager.transpose_backward)
+
+    torch.set_num_threads(old_threads)
+    return original_shape_image
+
+
 
 def export_prediction_from_logits(predicted_array_or_file: Union[np.ndarray, torch.Tensor], properties_dict: dict,
                                   configuration_manager: ConfigurationManager,
@@ -85,10 +132,15 @@ def export_prediction_from_logits(predicted_array_or_file: Union[np.ndarray, tor
         dataset_json_dict_or_file = load_json(dataset_json_dict_or_file)
 
     label_manager = plans_manager.get_label_manager(dataset_json_dict_or_file)
-    ret = convert_predicted_logits_to_segmentation_with_correct_shape(
-        predicted_array_or_file, plans_manager, configuration_manager, label_manager, properties_dict,
-        return_probabilities=save_probabilities
+    # ret = convert_predicted_logits_to_segmentation_with_correct_shape( #arthur removed 
+    #     predicted_array_or_file, plans_manager, configuration_manager, label_manager, properties_dict,
+    #     return_probabilities=save_probabilities
+    # )
+
+    ret = convert_predicted_image_to_original_shape(
+        predicted_array_or_file, plans_manager, configuration_manager, properties_dict
     )
+
     del predicted_array_or_file
 
     # save
