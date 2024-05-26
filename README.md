@@ -45,6 +45,7 @@ A smaller step_size (default: 0.5) at inference can reduce some artifacts on ima
 
 ## TODO : 
 - clean the mess
+- disable cropping in preprocessing ?
 - add arguments to control :
     - reconstruction mode (mean, median..)
     - network architecture (standard conv_tranpose, upsampling_nearest, up_sampling_trilinear..)
