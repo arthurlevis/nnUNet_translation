@@ -52,8 +52,8 @@ dependencies = [
     "yacs",
     "batchgeneratorsv2",
     "einops",
-    "dynamic-network-architectures_translation @ git+https://github.com/Phyrise/dynamic-network-architectures_translation.git@main",
-    "batchgenerators_translation @ git+https://github.com/Phyrise/batchgenerators_translation.git@master"
+    "dynamic-network-architectures @ git+https://github.com/Phyrise/dynamic-network-architectures.git@main",
+    "batchgenerators @ git+https://github.com/Phyrise/batchgenerators.git@master"
 ]
 
 [project.urls]
