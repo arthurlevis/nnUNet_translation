@@ -84,9 +84,8 @@ class nnUNetTrainerMRCT_finetunedL1_airway(nnUNetTrainer):
             output = self.network(data)
             # print(self.network)
             # assert(0)
-            # torch.save(output, f"output{self.current_epoch}")
-            # torch.save(data, f'data{self.current_epoch}')
-            # torch.save(target, f'target{self.current_epoch}')
+#
+
 
             # del data
             l = self.loss(output, target) / 10.0 #keep same scale for fine tuning : divide by 10
@@ -149,9 +148,7 @@ class nnUNetTrainerMRCT_finetunedL1_airway(nnUNetTrainer):
 
         with autocast(self.device.type, enabled=True) if self.device.type == 'cuda' else dummy_context():
             output = self.network(data)
-            # torch.save(output, f"output_val{self.current_epoch}")
-            # torch.save(data, f'data_val{self.current_epoch}')
-            # torch.save(target, f'target_val{self.current_epoch}')
+
             del data
             l = self.perceptual_loss(output, target) / 10.0 #keep same scale for fine tuning : divide by 10
 

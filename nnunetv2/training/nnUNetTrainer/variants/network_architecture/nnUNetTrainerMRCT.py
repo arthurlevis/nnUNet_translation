@@ -80,9 +80,6 @@ class nnUNetTrainerMRCT(nnUNetTrainer):
             output = self.network(data)
             # print(self.network)
             # assert(0)
-            torch.save(output, f"output{self.current_epoch}")
-            torch.save(data, f'data{self.current_epoch}')
-            torch.save(target, f'target{self.current_epoch}')
 
             # del data
             l = self.loss(output, target)

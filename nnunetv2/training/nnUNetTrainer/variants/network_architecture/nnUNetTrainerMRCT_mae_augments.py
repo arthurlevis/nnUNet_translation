@@ -5,10 +5,9 @@ from typing import Union, Tuple, List
 from batchgenerators.transforms.abstract_transforms import AbstractTransform
 
 import numpy as np
-from nnunetv2.training.loss.perceptual import MedicalNetPerceptualSimilarity
 from nnunetv2.training.loss.mae import myMAE
 
-from nnunetv2.training.dataloading.data_loader_2d import nnUNetDataLoader2D
+from nnunetv2.training.dataloading.data_loader_2d import nnUNetDataLoader2D_MRCT
 from nnunetv2.training.dataloading.data_loader_3d import nnUNetDataLoader3D_MRCT
 
 from torch import distributed as dist
@@ -18,7 +17,8 @@ from time import time, sleep
 from batchgenerators.utilities.file_and_folder_operations import join, load_json, isfile, save_json, maybe_mkdir_p
 
 from torch import autocast
-class nnUNetTrainerMRCT_debug(nnUNetTrainer):
+
+class nnUNetTrainerMRCT_mae_augments(nnUNetTrainer):
     def __init__(
         self,
         plans: dict,
@@ -30,13 +30,12 @@ class nnUNetTrainerMRCT_debug(nnUNetTrainer):
     ):
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
         self.enable_deep_supervision = False
-        self.num_iterations_per_epoch = 20
-        self.num_epochs = 50
+        self.num_iterations_per_epoch = 250
+        self.num_epochs = 1000
 
     def _build_loss(self):
-        loss = myMAE()      # loss = MedicalNetPerceptualSimilarity()
+        loss = myMAE()
         return loss
-
 
     @staticmethod
     def get_training_transforms(patch_size: Union[np.ndarray, Tuple[int]],
@@ -81,10 +80,13 @@ class nnUNetTrainerMRCT_debug(nnUNetTrainer):
         with autocast(self.device.type, enabled=True) if self.device.type == 'cuda' else dummy_context():
             output = self.network(data)
             # print(self.network)
-#
+            # assert(0)
 
-            l = self.loss(output, target)
+            # del data
+
             
+            l = self.loss(output, target)
+
         if self.grad_scaler is not None:
             self.grad_scaler.scale(l).backward()
             self.grad_scaler.unscale_(self.optimizer)
@@ -144,10 +146,9 @@ class nnUNetTrainerMRCT_debug(nnUNetTrainer):
         with autocast(self.device.type, enabled=True) if self.device.type == 'cuda' else dummy_context():
             output = self.network(data)
 
-
             del data
-            mae_loss = myMAE() # perceptual_loss = MedicalNetPerceptualSimilarity()
-            l = mae_loss(output, target)  # l = perceptual_loss(output, target)
+            mae_loss = myMAE()
+            l = mae_loss(output, target)
 
         return {'loss': l.detach().cpu().numpy(), 'tp_hard': 0, 'fp_hard': 0, 'fn_hard': 0}
 
