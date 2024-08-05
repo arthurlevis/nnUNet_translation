@@ -91,7 +91,6 @@ class nnUNetTrainer(object):
 
         self.device = device
         self.decoder_type = decoder_type
-        print(decoder_type)
 
         # print what device we are using
         if self.is_ddp:  # implicitly it's clear that we use cuda in this case
@@ -205,7 +204,6 @@ class nnUNetTrainer(object):
         if not self.was_initialized:
             self.num_input_channels = determine_num_input_channels(self.plans_manager, self.configuration_manager,
                                                                    self.dataset_json)
-
             self.network = self.build_network_architecture(
                 self.configuration_manager.network_arch_class_name,
                 self.configuration_manager.network_arch_init_kwargs,

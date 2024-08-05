@@ -25,13 +25,13 @@ class nnUNetTrainerMRCT(nnUNetTrainer):
         fold: int,
         dataset_json: dict,
         unpack_dataset: bool = True,
-        device: torch.device = torch.device("cuda"),
-        decoder_type:str = "nearest" # ["standard", "trilinear", "nearest"]  
+        device: torch.device = torch.device("cuda")
     ):
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
         self.enable_deep_supervision = False
         self.num_iterations_per_epoch = 250
         self.num_epochs = 1000
+        self.decoder_type = "standard" #["standard", "trilinear", "nearest"]  
 
     def _build_loss(self):
         loss = myMSE()
