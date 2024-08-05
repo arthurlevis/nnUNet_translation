@@ -26,7 +26,8 @@ class ExperimentPlanner(object):
                  gpu_memory_target_in_gb: float = 8,
                  preprocessor_name: str = 'DefaultPreprocessor', plans_name: str = 'nnUNetPlans',
                  overwrite_target_spacing: Union[List[float], Tuple[float, ...]] = None,
-                 suppress_transpose: bool = False):
+                 suppress_transpose: bool = False,
+                 decoder_type: str = "standard"):
         """
         overwrite_target_spacing only affects 3d_fullres! (but by extension 3d_lowres which starts with fullres may
         also be affected
@@ -74,6 +75,7 @@ class ExperimentPlanner(object):
         self.preprocessor_name = preprocessor_name
         self.plans_identifier = plans_name
         self.overwrite_target_spacing = overwrite_target_spacing
+        self.decoder_type = decoder_type 
         assert overwrite_target_spacing is None or len(overwrite_target_spacing), 'if overwrite_target_spacing is ' \
                                                                                   'used then three floats must be ' \
                                                                                   'given (as list or tuple)'
@@ -293,6 +295,7 @@ class ExperimentPlanner(object):
                 'dropout_op_kwargs': None,
                 'nonlin': 'torch.nn.LeakyReLU',
                 'nonlin_kwargs': {'inplace': True},
+                'decoder_type': self.decoder_type, 
             },
             '_kw_requires_import': ('conv_op', 'norm_op', 'dropout_op', 'nonlin'),
         }

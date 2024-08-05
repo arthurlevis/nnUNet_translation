@@ -137,7 +137,6 @@ class ResNet50(nn.Module):
         return nn.Sequential(*layers)
 
     def _forward_impl(self, x):
-        # See note [TorchScript super()]
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -159,9 +158,9 @@ class MedicalNet_L1Layers(torch.nn.Module):
         self.opt = opt
         # resnet_pretrained = ResNet50(BasicBlock, [1, 1, 1, 1]) #resnet10
         resnet_pretrained = ResNet50(Bottleneck, [3, 4, 6, 3]) #resnet50
-        resnet_pretrained = resnet_pretrained.to(device='cuda', dtype=torch.float16) #arthur : needed for autocast ? 
+        resnet_pretrained = resnet_pretrained.to(device='cuda', dtype=torch.float16) 
 
-        checkpoint = torch.load("/data2/alonguefosse/checkpoints/resnet_50_23dataset.pth") #cpu ?
+        checkpoint = torch.load("/data/alonguefosse/checkpoints/resnet_50_23dataset.pth") #cpu ?
         pretrained_state_dict = checkpoint["state_dict"]
         pretrained_state_dict = {k.replace("module.", ""): v for k, v in pretrained_state_dict.items()}
 
@@ -184,17 +183,6 @@ class MedicalNet_L1Layers(torch.nn.Module):
         self.debug = False
 
     def forward(self, x, y):
-        torch.save(x, "x")
-        torch.save(y, "y")
-
-        x = x[:,0:1] #arthur : force 1st channel in nnUNetMRCT
-        # x = (x - torch.mean(x)) / torch.std(x)
-        # y = (y - torch.mean(y)) / torch.std(y)
-        # print("----------")
-        # print(torch.min(x), torch.max(x))
-        # print(torch.min(y), torch.max(y))
-
-
         h = self.conv1(x)
         h = self.bn1(h)
         h_relu1 = self.relu(h)

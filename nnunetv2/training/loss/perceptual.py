@@ -237,7 +237,7 @@ class L1_UNet_layers(nn.Module):
                 "model_type": "PlainConvUNet"
             },
             "TotalSeg_V2": { #patch_size : [128 128 128], 0.6mm
-                "weights_path": "/data2/alonguefosse/checkpoints/TotalSeg_V2.pth", # 5 stage
+                "weights_path": "/data/alonguefosse/checkpoints/TotalSeg_V2.pth", # 5 stage
                 "strides": [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]],
                 "num_classes": 8,
                 "model_type": "PlainConvUNet"

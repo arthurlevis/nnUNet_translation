@@ -5,7 +5,7 @@ from typing import Union, Tuple, List
 from batchgenerators.transforms.abstract_transforms import AbstractTransform
 
 import numpy as np
-from nnunetv2.training.loss.mse import myMSE
+from nnunetv2.training.loss.perceptual import L1_UNet_layers
 
 from nnunetv2.training.dataloading.data_loader_2d import nnUNetDataLoader2D
 from nnunetv2.training.dataloading.data_loader_3d import nnUNetDataLoader3D_MRCT
@@ -17,7 +17,7 @@ from time import time, sleep
 from batchgenerators.utilities.file_and_folder_operations import join, load_json, isfile, save_json, maybe_mkdir_p
 
 from torch import autocast
-class nnUNetTrainerMRCT(nnUNetTrainer):
+class nnUNetTrainerMRCT_totalseg_L1_weight3(nnUNetTrainer):
     def __init__(
         self,
         plans: dict,
@@ -26,15 +26,16 @@ class nnUNetTrainerMRCT(nnUNetTrainer):
         dataset_json: dict,
         unpack_dataset: bool = True,
         device: torch.device = torch.device("cuda"),
-        decoder_type:str = "nearest" # ["standard", "trilinear", "nearest"]  
     ):
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
         self.enable_deep_supervision = False
         self.num_iterations_per_epoch = 250
         self.num_epochs = 1000
+        self.perceptual_loss = L1_UNet_layers("TotalSeg_V2", mae_weight=3)
+
 
     def _build_loss(self):
-        loss = myMSE()
+        loss = self.perceptual_loss
         return loss
 
     @staticmethod
@@ -81,10 +82,11 @@ class nnUNetTrainerMRCT(nnUNetTrainer):
             output = self.network(data)
             # print(self.network)
             # assert(0)
+#
+
 
             # del data
             l = self.loss(output, target)
-
         if self.grad_scaler is not None:
             self.grad_scaler.scale(l).backward()
             self.grad_scaler.unscale_(self.optimizer)
@@ -144,13 +146,9 @@ class nnUNetTrainerMRCT(nnUNetTrainer):
 
         with autocast(self.device.type, enabled=True) if self.device.type == 'cuda' else dummy_context():
             output = self.network(data)
-            torch.save(data, "data")
-            torch.save(output, "output")
-            torch.save(target, "target")
 
             del data
-            mse_loss = myMSE()
-            l = mse_loss(output, target)
+            l = self.perceptual_loss(output, target)
 
         return {'loss': l.detach().cpu().numpy(), 'tp_hard': 0, 'fp_hard': 0, 'fn_hard': 0}
 

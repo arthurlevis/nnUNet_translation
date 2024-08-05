@@ -644,7 +644,7 @@ class nnUNetPredictor(object):
             # predicted_logits /= n_predictions
 
             #arthur : added median and mean
-            print("-----------------------------")
+            # print("-----------------------------")
             # print("reconstruction : MEAN")
             # predicted_logits = self.rec_mean(slicers, data)
             print("reconstruction : MEDIAN")
