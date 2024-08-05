@@ -300,7 +300,7 @@ class nnUNetTrainer(object):
             arch_init_kwargs,
             arch_init_kwargs_req_import,
             num_input_channels,
-            1, #TODO:arthur - for now defined as 1 instead of num_output_channels
+            2, #TODO:arthur - for now defined as 1 instead of num_output_channels
             allow_init=True,
             deep_supervision=enable_deep_supervision,
             decoder_type=decoder_type)

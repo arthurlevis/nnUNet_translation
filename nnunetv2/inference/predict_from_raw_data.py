@@ -209,7 +209,8 @@ class nnUNetPredictor(object):
                            num_processes_segmentation_export: int = default_num_processes,
                            folder_with_segs_from_prev_stage: str = None,
                            num_parts: int = 1,
-                           part_id: int = 0):
+                           part_id: int = 0,
+                           reconstruction_mode:str = "mean"):
         """
         This is nnU-Net's default function for making predictions. It works best for batch predictions
         (predicting many images at once).
@@ -259,7 +260,7 @@ class nnUNetPredictor(object):
                                                                                  output_filename_truncated,
                                                                                  num_processes_preprocessing)
 
-        return self.predict_from_data_iterator(data_iterator, save_probabilities, num_processes_segmentation_export)
+        return self.predict_from_data_iterator(data_iterator, save_probabilities, num_processes_segmentation_export, reconstruction_mode)
 
     def _internal_get_data_iterator_from_lists_of_filenames(self,
                                                             input_list_of_lists: List[List[str]],
@@ -344,7 +345,8 @@ class nnUNetPredictor(object):
     def predict_from_data_iterator(self,
                                    data_iterator,
                                    save_probabilities: bool = False,
-                                   num_processes_segmentation_export: int = default_num_processes):
+                                   num_processes_segmentation_export: int = default_num_processes,
+                                   reconstruction_mode:str = "mean"):
         """
         each element returned by data_iterator must be a dict with 'data', 'ofile' and 'data_properties' keys!
         If 'ofile' is None, the result will be returned instead of written to a file
@@ -376,7 +378,7 @@ class nnUNetPredictor(object):
                     sleep(0.1)
                     proceed = not check_workers_alive_and_busy(export_pool, worker_list, r, allowed_num_queued=2)
 
-                prediction = self.predict_logits_from_preprocessed_data(data).cpu()
+                prediction = self.predict_logits_from_preprocessed_data(data, reconstruction_mode = reconstruction_mode).cpu()
 
                 if ofile is not None:
                     # this needs to go into background processes
@@ -459,7 +461,7 @@ class nnUNetPredictor(object):
             else:
                 return ret
 
-    def predict_logits_from_preprocessed_data(self, data: torch.Tensor) -> torch.Tensor:
+    def predict_logits_from_preprocessed_data(self, data: torch.Tensor, reconstruction_mode:str = "mean") -> torch.Tensor:
         """
         IMPORTANT! IF YOU ARE RUNNING THE CASCADE, THE SEGMENTATION FROM THE PREVIOUS STAGE MUST ALREADY BE STACKED ON
         TOP OF THE IMAGE AS ONE-HOT REPRESENTATION! SEE PreprocessAdapter ON HOW THIS SHOULD BE DONE!
@@ -484,11 +486,11 @@ class nnUNetPredictor(object):
                 # second iteration to crash due to OOM. Grabbing that with try except cause way more bloated code than
                 # this actually saves computation time
                 if prediction is None:
-                    prediction = self.predict_sliding_window_return_logits(data).to('cpu')
+                    prediction = self.predict_sliding_window_return_logits(data, reconstruction_mode=reconstruction_mode).to('cpu')
                     # n_predictions = torch.ones_like(prediction)
 
                 else:
-                    prediction += self.predict_sliding_window_return_logits(data).to('cpu')
+                    prediction += self.predict_sliding_window_return_logits(data, reconstruction_mode=reconstruction_mode).to('cpu')
                     # n_predictions += 1
 
             if len(self.list_of_parameters) > 1:
@@ -602,6 +604,7 @@ class nnUNetPredictor(object):
                                                        data: torch.Tensor,
                                                        slicers,
                                                        do_on_device: bool = True,
+                                                       reconstruction_mode:str = "mean",
                                                        ):
         predicted_logits = n_predictions = prediction = gaussian = workon = None
         results_device = self.device if do_on_device else torch.device('cpu')
@@ -643,13 +646,14 @@ class nnUNetPredictor(object):
 
             # predicted_logits /= n_predictions
 
-            #arthur : added median and mean
-            # print("-----------------------------")
-            # print("reconstruction : MEAN")
-            # predicted_logits = self.rec_mean(slicers, data)
-            print("reconstruction : MEDIAN")
-            predicted_logits = self.rec_median(slicers, data)
-            print("-----------------------------")
+            if reconstruction_mode == "mean":
+                print("Reconstruction: MEAN")
+                predicted_logits = self.rec_mean(slicers, data)
+            elif reconstruction_mode == "median":
+                print("Reconstruction: MEDIAN")
+                predicted_logits = self.rec_median(slicers, data)
+            else:
+                raise ValueError(f"Unknown reconstruction mode: {reconstruction_mode}")
 
             # check for infs
             if torch.any(torch.isinf(predicted_logits)):
@@ -664,7 +668,7 @@ class nnUNetPredictor(object):
         
         return predicted_logits
 
-    def predict_sliding_window_return_logits(self, input_image: torch.Tensor) \
+    def predict_sliding_window_return_logits(self, input_image: torch.Tensor, reconstruction_mode:str = "mean") \
             -> Union[np.ndarray, torch.Tensor]:
         assert isinstance(input_image, torch.Tensor)
         self.network = self.network.to(self.device)
@@ -697,7 +701,8 @@ class nnUNetPredictor(object):
                     # we need to try except here because we can run OOM in which case we need to fall back to CPU as a results device
                     # try:
                     predicted_logits = self._internal_predict_sliding_window_return_logits(data, slicers,
-                                                                                               self.perform_everything_on_device)
+                                                                                               self.perform_everything_on_device,
+                                                                                               reconstruction_mode)
                     # except RuntimeError:
                     #     print(
                     #         'Prediction on device was unsuccessful, probably due to a lack of memory. Moving results arrays to CPU')
@@ -705,7 +710,8 @@ class nnUNetPredictor(object):
                     #     predicted_logits = self._internal_predict_sliding_window_return_logits(data, slicers, False)
                 else:
                     predicted_logits = self._internal_predict_sliding_window_return_logits(data, slicers,
-                                                                                           self.perform_everything_on_device)
+                                                                                           self.perform_everything_on_device,
+                                                                                           reconstruction_mode)
 
                 empty_cache(self.device)
                 # revert padding
@@ -761,6 +767,9 @@ def predict_entry_point_modelfolder():
     parser.add_argument('--disable_progress_bar', action='store_true', required=False, default=False,
                         help='Set this flag to disable progress bar. Recommended for HPC environments (non interactive '
                              'jobs)')
+    parser.add_argument('--rec', type=str, default='mean', choices=['mean', 'median'],
+                        help='Method of reconstruction: mean or median. Default is mean.')
+
 
     print(
         "\n#######################################################################\nPlease cite the following paper "
@@ -804,8 +813,8 @@ def predict_entry_point_modelfolder():
                                  num_processes_preprocessing=args.npp,
                                  num_processes_segmentation_export=args.nps,
                                  folder_with_segs_from_prev_stage=args.prev_stage_predictions,
-                                 num_parts=1, part_id=0)
-
+                                 num_parts=1, part_id=0,
+                                 reconstruction_mode=args.rec)
 
 def predict_entry_point():
     import argparse
@@ -870,6 +879,9 @@ def predict_entry_point():
     parser.add_argument('--disable_progress_bar', action='store_true', required=False, default=False,
                         help='Set this flag to disable progress bar. Recommended for HPC environments (non interactive '
                              'jobs)')
+    parser.add_argument('--rec', type=str, default='mean', choices=['mean', 'median'],
+                        help='Method of reconstruction: mean or median. Default is mean.')
+
 
     print(
         "\n#######################################################################\nPlease cite the following paper "
@@ -917,13 +929,20 @@ def predict_entry_point():
         args.f,
         checkpoint_name=args.chk
     )
+    # predictor.predict_from_files(args.i, args.o, save_probabilities=args.save_probabilities,
+    #                              overwrite=not args.continue_prediction,
+    #                              num_processes_preprocessing=args.npp,
+    #                              num_processes_segmentation_export=args.nps,
+    #                              folder_with_segs_from_prev_stage=args.prev_stage_predictions,
+    #                              num_parts=args.num_parts,
+    #                              part_id=args.part_id)
     predictor.predict_from_files(args.i, args.o, save_probabilities=args.save_probabilities,
                                  overwrite=not args.continue_prediction,
                                  num_processes_preprocessing=args.npp,
                                  num_processes_segmentation_export=args.nps,
                                  folder_with_segs_from_prev_stage=args.prev_stage_predictions,
                                  num_parts=args.num_parts,
-                                 part_id=args.part_id)
+                                 reconstruction_mode=args.rec)
     # r = predict_from_raw_data(args.i,
     #                           args.o,
     #                           model_folder,
