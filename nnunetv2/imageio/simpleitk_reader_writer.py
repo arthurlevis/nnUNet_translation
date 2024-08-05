@@ -122,7 +122,7 @@ class SimpleITKIO(BaseReaderWriter):
             seg = seg[0]
 
         if seg.dtype=="float16":
-            itk_image = sitk.GetImageFromArray(seg.astype(np.float32)) #arthur : peut mieux faire
+            itk_image = sitk.GetImageFromArray(seg.astype(np.float32)) #TODO: to improve
         else:
             itk_image = sitk.GetImageFromArray(seg.astype(np.uint8))
         

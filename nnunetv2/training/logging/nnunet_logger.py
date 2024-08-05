@@ -67,7 +67,7 @@ class nnUNetLogger(object):
         ax.set_xlabel("epoch")
         ax.set_ylabel("loss")
         ax.legend(loc=(0, 1))
-        if(self.my_fantastic_logging['mean_fg_dice']!=[] and self.my_fantastic_logging['ema_fg_dice']!=[]): #arthur, todo : better ?
+        if(self.my_fantastic_logging['mean_fg_dice']!=[] and self.my_fantastic_logging['ema_fg_dice']!=[]): #TODO : to improve
             ax2.set_ylabel("pseudo dice")
             ax2.legend(loc=(0.2, 1))
             ax2.plot(x_values, self.my_fantastic_logging['mean_fg_dice'][:epoch + 1], color='g', ls='dotted', label="pseudo dice",
