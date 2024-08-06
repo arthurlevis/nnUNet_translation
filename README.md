@@ -3,7 +3,8 @@ For further information, please contact me by e-mail : arthur.longuefosse [at] g
 
 Please cite our workshop paper when using nnU-Net_translation :
 
-    Longuefosse, A., Le Bot, E., Denis de Senneville B. et al. (2024). Adapted nnU-Net: A Robust Baseline for Cross-Modality Synthesis and Medical Image Inpainting. Accepted in International Workshop on Simulation and Synthesis in Medical Imaging (SASHIMI), 2024, Held in Conjunction with MICCAI 2024.
+    Longuefosse, A., Le Bot, E., Denis de Senneville B. et al. (2024). Adapted nnU-Net: A Robust Baseline for Cross-Modality Synthesis and Medical Image Inpainting. 
+    Accepted in International Workshop on Simulation and Synthesis in Medical Imaging (SASHIMI), 2024, Held in Conjunction with MICCAI 2024.
 
 Along with the original nnUNet paper :
 
