@@ -62,7 +62,7 @@ from nnunetv2.utilities.plans_handling.plans_handler import PlansManager, Config
 from torch import autocast, nn
 from torch import distributed as dist
 from torch.cuda import device_count
-from torch.cuda.amp import GradScaler
+from torch.amp import GradScaler
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 
@@ -159,7 +159,7 @@ class nnUNetTrainer(object):
         self.num_input_channels = None  # -> self.initialize()
         self.network = None  # -> self.build_network_architecture()
         self.optimizer = self.lr_scheduler = None  # -> self.initialize
-        self.grad_scaler = GradScaler() if self.device.type == 'cuda' else None
+        self.grad_scaler = GradScaler('cuda') if self.device.type == 'cuda' else None
         self.loss = None  # -> self.initialize
 
         ### Simple logging. Don't take that away from me!
@@ -300,7 +300,7 @@ class nnUNetTrainer(object):
             arch_init_kwargs,
             arch_init_kwargs_req_import,
             num_input_channels,
-            2, #TODO:arthur - for now defined as 1 instead of num_output_channels
+            1, #TODO:arthur - for now defined as 1 instead of num_output_channels
             allow_init=True,
             deep_supervision=enable_deep_supervision,
             decoder_type=decoder_type)

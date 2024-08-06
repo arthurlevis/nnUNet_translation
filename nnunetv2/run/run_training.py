@@ -164,8 +164,7 @@ def run_unpacking(dataset_name_or_id: Union[str, int],
     nnunet_trainer = get_trainer_from_args(dataset_name_or_id, configuration, fold, trainer_class_name,
                                                plans_identifier, use_compressed_data, device=device)
     # apply the unpacking to the proposed trainer;
-    unpack_dataset(nnUNet_trainer.preprocessed_dataset_folder, unpack_segmentation=True, overwrite_existing=False,
-                           num_processes=max(1, round(get_allowed_n_proc_DA() // 2)))
+    unpack_dataset(nnunet_trainer.preprocessed_dataset_folder)
 
 
 
