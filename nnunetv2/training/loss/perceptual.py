@@ -237,7 +237,7 @@ class L1_UNet_layers(nn.Module):
                 "model_type": "PlainConvUNet"
             },
             "TotalSeg_V2": { #patch_size : [128 128 128], 0.6mm
-                "weights_path": "/data/alonguefosse/checkpoints/TotalSeg_V2.pth", # 5 stage
+                "weights_path": "/data2/alonguefosse/checkpoints/TotalSeg_V2.pth", # 5 stage
                 "strides": [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]],
                 "num_classes": 8,
                 "model_type": "PlainConvUNet"
@@ -356,3 +356,159 @@ class L1_UNet_layers(nn.Module):
             file2.write(f" | mae :  {mae_loss:.3f} \n")
 
         return sum_loss + mae_loss
+    
+
+
+
+
+class UNet_layers2(nn.Module):
+    def __init__(self, net1 = "", net2 = "", w1 = 1.0, w2 = 1.0):
+        super().__init__()
+        model_params = {
+            "TotalSeg_vessels": { #1.5mm
+                "weights_path": "/data2/alonguefosse/checkpoints/TotalSeg_vessels.pth",
+                "strides": [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 1, 2]],
+                "num_classes": 3,
+                "model_type": "PlainConvUNet"
+            },
+            "TotalSeg_V2": { #patch_size : [128 128 128], 0.6mm
+                "weights_path": "/data2/alonguefosse/checkpoints/TotalSeg_V2.pth", # 5 stage
+                "strides": [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]],
+                "num_classes": 8,
+                "model_type": "PlainConvUNet"
+            },
+            "TotalSeg_pelvis_V2": { #0.6mm
+                "weights_path": "/data2/alonguefosse/checkpoints/TotalSeg_pelvis_V2.pth", # 5 stage
+                "strides": [[1, 1, 1], [1, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]],
+                "kernels" : [[1, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]],
+                "num_classes": 38,
+                "model_type": "PlainConvUNet"
+            },
+            "Imene8": { #96x160x160
+                "weights_path": "/data2/alonguefosse/checkpoints/nnUNet_Imene8_best.pth", # 5 stage
+                "strides": [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [1, 2, 2]],
+                "num_classes": 9,
+                "model_type": "PlainConvUNet",
+            },
+            "NaviAirway": {
+                "weights_path" : "/data2/alonguefosse/checkpoints/naviairway_semi_supervise.pkl",
+                "model_type": "NaviAirway"
+            },
+        }
+        params = model_params[net1]
+        kernel = params.get("kernels", [[3, 3, 3]] * 6)
+        if params["model_type"] == "PlainConvUNet":
+            self.layers1 = [0,1,2,3,4,5,6,7,8]
+            self.stages1 = 5
+
+            model1 = PlainConvUNet(input_channels=1, n_stages=6, features_per_stage=[32, 64, 128, 256, 320, 320], 
+                                conv_op=nn.Conv3d, kernel_sizes=kernel, strides=params["strides"], 
+                                num_classes=params["num_classes"], deep_supervision=False, n_conv_per_stage=[2] * 6, 
+                                n_conv_per_stage_decoder=[2] * 5, conv_bias=True, norm_op=nn.InstanceNorm3d, 
+                                norm_op_kwargs={'eps': 1e-5, 'affine': True}, nonlin=nn.LeakyReLU, 
+                                nonlin_kwargs={'inplace': True})
+        elif params["model_type"] == "NaviAirway":
+            self.layers1 = [0,1,2,3,4,5,6]
+            self.stages1 = 4
+
+            model1 = SegAirwayModel(in_channels=1, out_channels=2)
+
+        if not os.path.exists(params["weights_path"]):
+            raise FileNotFoundError(f'Error: Checkpoint not found at {params["weights_path"]}')
+        checkpoint = torch.load(params["weights_path"], map_location='cuda')
+        model_state_dict = checkpoint.get('state_dict', checkpoint.get('network_weights', checkpoint.get('model_state_dict')))
+        model1.load_state_dict(model_state_dict, strict=False)
+        print(f"loaded model1 : {params['weights_path']}")
+        model1.eval()
+        for param in model1.parameters(): 
+            param.requires_grad = False
+        self.model1 = model1   
+        self.model1 = self.model1.to(device='cuda', dtype=torch.float16) #arthur : needed for autocast ? 
+
+        if net2!="":
+            params = model_params[net2]
+            kernel = params.get("kernels", [[3, 3, 3]] * 6)
+            if params["model_type"] == "PlainConvUNet":
+                self.layers2 = [0,1,2,3,4,5,6,7,8]
+                self.stages2 = 5
+
+                model2 = PlainConvUNet(input_channels=1, n_stages=6, features_per_stage=[32, 64, 128, 256, 320, 320], 
+                                    conv_op=nn.Conv3d, kernel_sizes=kernel, strides=params["strides"], 
+                                    num_classes=params["num_classes"], deep_supervision=False, n_conv_per_stage=[2] * 6, 
+                                    n_conv_per_stage_decoder=[2] * 5, conv_bias=True, norm_op=nn.InstanceNorm3d, 
+                                    norm_op_kwargs={'eps': 1e-5, 'affine': True}, nonlin=nn.LeakyReLU, 
+                                    nonlin_kwargs={'inplace': True})
+            elif params["model_type"] == "NaviAirway":
+                self.layers2 = [0,1,2,3,4,5,6]
+                self.stages2 = 4
+                model2 = SegAirwayModel(in_channels=1, out_channels=2)
+
+            if not os.path.exists(params["weights_path"]):
+                raise FileNotFoundError(f'Error: Checkpoint not found at {params["weights_path"]}')
+            checkpoint = torch.load(params["weights_path"], map_location='cuda')
+            model_state_dict = checkpoint.get('state_dict', checkpoint.get('network_weights', checkpoint.get('model_state_dict')))
+            model2.load_state_dict(model_state_dict, strict=False)
+            print(f"loaded model2 : {params['weights_path']}")
+            model2.eval()
+            for param in model2.parameters(): 
+                param.requires_grad = False
+            self.model2 = model2    
+            self.model2 = self.model2.to(device='cuda', dtype=torch.float16) #arthur : needed for autocast ? 
+        else:
+            self.model2 = None
+
+        self.L1 = nn.L1Loss()
+        self.net1 = net1
+        self.net2 = net2
+        self.w1 = w1
+        self.w2 = w2
+        self.print_perceptual_layers = False
+        self.debug = False
+
+    def forward(self, x, y): 
+        """
+        todo : check if normalization is needed
+        since 100% of models are trained on CT = no normalization needed ?
+        """
+        emb_x1 = self.model1(x[:,0:1])  
+        emb_y1 = self.model1(y)
+
+        if self.stages2==5:
+            padding = (0, 0, 8, 8, 0, 0) #hard coded for lungs. TODO: adapt to be multiple of 2^self.stages
+            x = F.pad(x, padding, mode='constant', value=0)  
+            y = F.pad(y, padding, mode='constant', value=0)  
+
+        emb_x2 = self.model2(x[:,0:1])  
+        emb_y2 = self.model2(y)
+
+        sum_loss1 = 0
+        sum_loss2 = 0
+        total_loss = 0
+        layer_losses1 = []
+        layer_losses2 = []
+        for i in self.layers1:
+            layer_loss1 = self.L1(emb_x1[i], emb_y1[i].detach())
+            sum_loss1 += layer_loss1
+            layer_losses1.append((i, layer_loss1.item()))
+
+        for i in self.layers2:
+            layer_loss2 = self.L1(emb_x2[i], emb_y2[i].detach())
+            sum_loss2 += layer_loss2 
+            layer_losses2.append((i, layer_loss2.item()))
+
+        with open(f'losses1_{self.net1}.txt', 'a') as file:
+            for i, loss1 in layer_losses1:
+                file.write(f"Layer {i}: {self.net1} = {loss1} \n")
+            file.write(f"-------------------\n")
+
+        with open(f'losses2_{self.net2}.txt', 'a') as file:
+            for i, loss2 in layer_losses2:
+                file.write(f"Layer {i}: {self.net2} = {loss2} \n")
+            file.write(f"-------------------\n")
+
+        total_loss = sum_loss1 * self.w1 + sum_loss2 * self.w2
+
+        print(self.net1, sum_loss1*self.w1)
+        print(self.net2, sum_loss2*self.w2)
+        print("----")
+        return sum_loss1 + sum_loss2
