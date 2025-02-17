@@ -32,7 +32,7 @@ export nnUNet_preprocessed="/data/alonguefosse/nnUNet/preprocessed"
 export nnUNet_results="/data/alonguefosse/nnUNet/results"
 ```
 
-Then, run `nnUNetv2_translation_tutorial_singlemod.py` (actual implementation used `.ipynb` file in `/notebook` accessible on GitHub)
+Then, run `nnUNetv2_translation_tutorial_singlemod.ipynb`
 
 now you can train using : 
 ```bash
