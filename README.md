@@ -32,6 +32,8 @@ export nnUNet_preprocessed="/data/alonguefosse/nnUNet/preprocessed"
 export nnUNet_results="/data/alonguefosse/nnUNet/results"
 ```
 
+Then, run `nnUNetv2_translation_tutorial_singlemod.py` (actual implementation used `.ipynb` file in `/notebook` accessible on GitHub)
+
 now you can train using : 
 ```bash
 nnUNetv2_train DatasetY 3d_fullres 0 -tr nnUNetTrainerMRCT
