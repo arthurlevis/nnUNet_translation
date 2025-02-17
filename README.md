@@ -1,5 +1,5 @@
 # nnUNet_translation
-For further information, please contact author by e-mail : arthur.longuefosse [at] gmail.com 
+For further information, please contact the author by e-mail : arthur.longuefosse [at] gmail.com 
 
 Please cite the workshop paper when using nnU-Net_translation :
 
