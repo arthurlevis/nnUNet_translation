@@ -1,4 +1,4 @@
-# nnUNet_translation [in progress]
+# nnUNet_translation
 For further information, please contact me by e-mail : arthur.longuefosse [at] gmail.com 
 
 Please cite our workshop paper when using nnU-Net_translation :
@@ -44,8 +44,3 @@ inference :
 ```
 - A smaller step_size (default: 0.5) at inference can reduce some artifacts on images.
 - --rec allows to choose between mean and median reconstruction for overlapping patches 
-
-## TODO : 
-- clean the mess (update 06/08/2024 : looks ok right ?)
-- add arguments to control :
-    - output channel size (for now : 1)
